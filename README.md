@@ -2,6 +2,11 @@
 
 A very short and simple test covering cache line utilization comparing OOP approach vs DOD approach.
 
+# Disclaimer
+
+No error checking is performed, if it crashes it is because it runs oout of memory.
+Closing big memory consumers like Chrome etc, will help.
+
 ## Results on personal machines:
 
 ### Intel(R) Core(TM) i3-4160 CPU @ 3.60GHz   3.60 GHz 8 GB RAM
