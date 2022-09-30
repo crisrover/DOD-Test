@@ -38,51 +38,51 @@ static int unsigned instanceCount = 10 * MILLION;
 
 class OOPClass
 {
-    public: int someVar;
-    public: int* somePointer;
-    public: char* someString;
-    public: int anoterVar;
-    public: int* someOtherPointer;
-    public: void* yetAnotherOne;
+public: int someVar;
+public: int* somePointer;
+public: char* someString;
+public: int anoterVar;
+public: int* someOtherPointer;
+public: void* yetAnotherOne;
 
-    public: bool shouldUpdate = false;
-    
-    public: double xPos = 0.001f;
-    public: float yPos = 0.002f;
-    public: float zPos = 0.003f;
-}
+public: bool shouldUpdate = false;
+
+public: double xPos = 0.001f;
+public: float yPos = 0.002f;
+public: float zPos = 0.003f;
+};
 
 class OOPClassBase
 {
     virtual bool* ShouldUpdate() = 0;
     virtual double* XPos() = 0;
-}
+};
 
 class OOPClassDerived : OOPClassBase
 {
-    public: int someVar;
-    public: int* somePointer;
-    public: char* someString;
-    public: int anoterVar;
-    public: int* someOtherPointer;
-    public: void* yetAnotherOne;
+public: int someVar;
+public: int* somePointer;
+public: char* someString;
+public: int anoterVar;
+public: int* someOtherPointer;
+public: void* yetAnotherOne;
 
-    bool* ShouldUpdate()
-    {
-        return &shouldUpdate;
-    }
+      bool* ShouldUpdate()
+      {
+          return &shouldUpdate;
+      }
 
-    double* XPos()
-    {
-        return &xPos;
-    }
+      double* XPos()
+      {
+          return &xPos;
+      }
 
-    private: bool shouldUpdate = false;
-    
-    private: double xPos = 0.001f;
-    public: float yPos = 0.002f;
-    public: float zPos = 0.003f;
-}
+private: bool shouldUpdate = false;
+
+private: double xPos = 0.001f;
+public: float yPos = 0.002f;
+public: float zPos = 0.003f;
+};
 
 struct DODItemPos;
 
@@ -108,6 +108,7 @@ struct DODItemPos
 
 int main()
 {
+    printf("WARNING: This program does not perform ANY error checking, if it crashes it ran out of memory.\r\nClosing big memory consumers like Chrome, etc might help.\r\n");
     OOPClass* arrayOfOOPClassInstances = new OOPClass[instanceCount];
     
     OOPClassDerived* arrayOfOOPDerivedClassInstances = new OOPClassDerived[instanceCount];
