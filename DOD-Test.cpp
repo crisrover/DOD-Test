@@ -16,6 +16,21 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+/*
+I wrote this little program as an exemplification of how the DOD approach 
+(and acutally just one or two concepts, not the whole principles) can be used
+to optimize a critical path or other parts of the code.
+This example assumes that you have a OOPClass or a DOD counterpart, each 
+containing the same data.
+There are three scenarios:
+1. plain OOP without polimorfism
+2. OOP with polimorfism
+3. DOD approach.
+
+The results are that the DOD approach is an order of magnitude faster than the
+rest.
+*/
+
 #include <stdio.h>
 #include <Windows.h>
 
@@ -38,50 +53,70 @@ static int unsigned instanceCount = 10 * MILLION;
 
 class OOPClass
 {
-public: int someVar;
-public: int* somePointer;
-public: char* someString;
-public: int anoterVar;
-public: int* someOtherPointer;
-public: void* yetAnotherOne;
-
-public: bool shouldUpdate = false;
-
-public: double xPos = 0.001f;
-public: float yPos = 0.002f;
-public: float zPos = 0.003f;
+public: 
+    int someVar;
+    int* somePointer;
+    char* someString;
+    int anoterVar;
+    int* someOtherPointer;
+    void* yetAnotherOne;
+    void* test;
+    void* test2;
+    void* test3;
+  
+    bool shouldUpdate = false;
+    double xPos = 0.001f;
+    float yPos = 0.002f;
+    float zPos = 0.003f;
 };
 
 class OOPClassBase
 {
-    virtual bool* ShouldUpdate() = 0;
-    virtual double* XPos() = 0;
+    public: 
+        virtual bool* ShouldUpdate() = 0;
+        virtual double* XPos() = 0;
+        virtual float* YPos() = 0;
+        virtual float* ZPos() = 0;
 };
 
 class OOPClassDerived : OOPClassBase
 {
-public: int someVar;
-public: int* somePointer;
-public: char* someString;
-public: int anoterVar;
-public: int* someOtherPointer;
-public: void* yetAnotherOne;
+public:    
+    int someVar;
+    int* somePointer;
+    char* someString;
+    int anoterVar;
+    int* someOtherPointer;
+    void* yetAnotherOne;
+    void* test;
+    void* test2;
+    void* test3;
 
-      bool* ShouldUpdate()
-      {
-          return &shouldUpdate;
-      }
+    bool* ShouldUpdate()
+    {
+        return &shouldUpdate;
+    }
 
-      double* XPos()
-      {
-          return &xPos;
-      }
+    double* XPos()
+    {
+        return &xPos;
+    }
 
-private: bool shouldUpdate = false;
+    float* YPos()
+    {
+        return &yPos;
+    }
 
-private: double xPos = 0.001f;
-public: float yPos = 0.002f;
-public: float zPos = 0.003f;
+    float* ZPos()
+    {
+        return &zPos;
+    }
+
+private: 
+    bool shouldUpdate = false;
+    double xPos = 0.001f;
+    float yPos = 0.002f;
+    float zPos = 0.003f;
 };
 
 struct DODItemPos;
@@ -94,6 +129,9 @@ struct DODItem
     int anoterVar;
     int* someOtherPointer;
     void* yetAnotherOne;
+    void* test;
+    void* test2;
+    void* test3;
 
     DODItemPos* pos;
 };
@@ -111,55 +149,41 @@ int main()
     printf("WARNING: This program does not perform ANY error checking, if it crashes it ran out of memory.\r\nClosing big memory consumers like Chrome, etc might help.\r\n");
     OOPClass* arrayOfOOPClassInstances = new OOPClass[instanceCount];
     
-    OOPClassDerived* arrayOfOOPDerivedClassInstances = new OOPClassDerived[instanceCount];
+    OOPClassBase** arrayOfOOPDerivedClassInstances = new OOPClassBase*[instanceCount];
 
-    DODItemPos* arrayOfDODItemPos = new DODItemPos[instanceCount];
+    DODItemPos* arrayOfDODItemPos = new DODItemPos[instanceCount / 3];
+
+    int dodIndex = 0;
 
     for (int i = 0; i < instanceCount; ++i)
     {
-        OOPClass* instance = new OOPClass();
         OOPClassDerived* instanceDerived = new OOPClassDerived();
-        DODItemPos* itemPos = new DODItemPos();
 
         if ((i % 3) == 0)
         {
             *instanceDerived->ShouldUpdate() = true;
             (*instanceDerived->XPos())++;
-            instanceDerived->yPos++;
-            instanceDerived->zPos++;
+            (*instanceDerived->YPos())++;
+            (*instanceDerived->ZPos())++;
 
-            instance->shouldUpdate = true;
-            instance->xPos++;
-            instance->yPos++;
-            instance->zPos++;
+            arrayOfOOPClassInstances[i].shouldUpdate = true;
+            arrayOfOOPClassInstances[i].xPos++;
+            arrayOfOOPClassInstances[i].yPos++;
+            arrayOfOOPClassInstances[i].zPos++;
 
-            itemPos->xPos++;
-            itemPos->yPos++;
-            itemPos->zPos++;
+            arrayOfDODItemPos[dodIndex].xPos++;
+            arrayOfDODItemPos[dodIndex].yPos++;
+            arrayOfDODItemPos[dodIndex++].zPos++;
         }
-        else
-        {
-            (*instanceDerived->XPos()) += i;
-            instanceDerived->yPos += i + 0.1f;
-            instanceDerived->zPos += i + 0.2f;
-
-            instance->xPos += i;
-            instance->yPos += i + 0.1f;
-            instance->zPos += i + 0.2f;
-
-            itemPos->xPos += i;
-            itemPos->yPos += i + 0.1f;
-            itemPos->zPos += i + 0.2f;
-        }
-
-        arrayOfDODItemPos[i] = *itemPos;
-        arrayOfOOPClassInstances[i] = *instance;
+        
+        arrayOfOOPDerivedClassInstances[i] = (OOPClassBase*)instanceDerived;
     }
 
 
     // Here is the actual test, same operations on the same three elements for the entire collection
 
     double elapsed;
+    printf("Checking %i OOP elements: \n", instanceCount);
     BEGIN_TIMED_BLOCK(test);
     for (int i = 0; i < instanceCount; ++i)
     {
@@ -173,21 +197,33 @@ int main()
     END_TIMED_BLOCK(test, elapsed);
     printf("Timed OOP        : %.6f s\n", elapsed);
 
+    delete[] arrayOfOOPClassInstances;
+
     double elapsedThree;
     BEGIN_TIMED_BLOCK(testC);
 
     for (int i = 0; i < instanceCount; ++i)
     {
-        (*arrayOfOOPDerivedClassInstances[i].XPos()) = 123456.7f;
-        arrayOfOOPDerivedClassInstances[i].yPos = 7.654321f;
-        arrayOfOOPDerivedClassInstances[i].zPos = 8.888888f;
+        if (*arrayOfOOPDerivedClassInstances[i]->ShouldUpdate())
+        {
+            *arrayOfOOPDerivedClassInstances[i]->XPos() = 123456.7f;
+            *arrayOfOOPDerivedClassInstances[i]->YPos() = 7.654321f;
+            *arrayOfOOPDerivedClassInstances[i]->ZPos() = 8.888888f;
+        }
     }
     END_TIMED_BLOCK(testC, elapsedThree)
     printf("Timed OOP Derived: %.6f s\n", elapsedThree);
 
-    double elapsedTwo;
-    BEGIN_TIMED_BLOCK(testB);
     for (int i = 0; i < instanceCount; ++i)
+    {
+        delete arrayOfOOPDerivedClassInstances[i];
+    }
+    delete[] arrayOfOOPDerivedClassInstances;
+
+    double elapsedTwo;
+    printf("Checking %i DOD elements: \n", dodIndex);
+    BEGIN_TIMED_BLOCK(testB);
+    for (int i = 0; i < dodIndex; ++i)
     {
         arrayOfDODItemPos[i].xPos = 123456.7f;
         arrayOfDODItemPos[i].yPos = 7.654321f;
